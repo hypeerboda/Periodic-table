@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Periodic Table</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000000;
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .watermark {
+      position: absolute;
+      top: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: rgba(0, 255, 204, 0.8);
+      text-shadow: 0 0 15px rgba(0, 255, 204, 0.9), 0 0 30px rgba(0, 255, 204, 0.7);
+      letter-spacing: 3px;
+      pointer-events: none;
+      z-index: 0;
+      animation: watermark-pulse 4s infinite ease-in-out;
+    }
+
+    @keyframes watermark-pulse {
+      0%, 100% { opacity: 0.8; text-shadow: 0 0 15px rgba(0, 255, 204, 0.9), 0 0 30px rgba(0, 255, 204, 0.7); }
+      50% { opacity: 1; text-shadow: 0 0 20px rgba(0, 255, 204, 1), 0 0 40px rgba(0, 255, 204, 0.9); }
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      font-size: 0.85rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .legend span {
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .periodic-table {
+      display: grid;
+      grid-template-columns: repeat(18, 70px);
+      gap: 4px;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 10px;
+    }
+
+    .element {
+      height: 70px;
+      border: 2px solid;
+      border-radius: 4px;
+      padding: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .element:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px currentColor;
+      z-index: 10;
+    }
+
+    .element-number {
+      font-size: 0.65rem;
+      align-self: flex-start;
+      position: absolute;
+      top: 3px;
+      left: 4px;
+    }
+
+    .element-mass {
+      font-size: 0.65rem;
+      align-self: flex-end;
+      position: absolute;
+      top: 3px;
+      right: 4px;
+    }
+
+    .element-symbol {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .element-name {
+      font-size: 0.65rem;
+      text-align: center;
+      margin-top: -2px;
+    }
+
+    .lanthanoid-actinoid-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+      margin-top: 10px;
+    }
+
+    .lanthanoid-actinoid-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .lanthanoid-actinoid {
+      display: grid;
+      grid-template-columns: repeat(15, 70px);
+      gap: 4px;
+    }
+
+    .lanthanoid-actinoid-label {
+      text-align: center;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .lanthanoid-actinoid-spacer {
+      width: 70px;
+      height: 70px;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(10, 14, 39, 0.95);
+      border: 3px solid;
+      border-radius: 20px;
+      padding: 30px;
+      min-width: 500px;
+      max-width: 600px;
+      box-shadow: 0 0 50px rgba(0, 255, 204, 0.5);
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .popup.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      height: 120px;
+    }
+
+    .popup-info {
+      width: 60%;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+
+    .popup-symbol-name {
+      width: 35%;
+      text-align: right;
+    }
+
+    .popup-symbol {
+      font-size: 4rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .popup-name {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .shells-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      height: 300px;
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .shell {
+      position: absolute;
+      border: 2px solid;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: shell-pulse 3s infinite ease-in-out;
+    }
+
+    @keyframes shell-pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    .electron {
+      width: 10px;
+      height: 10px;
+      background: currentColor;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 10px currentColor;
+      animation: electron-orbit 4s infinite linear;
+    }
+
+    @keyframes electron-orbit {
+      0% { transform: rotate(0deg) translateX(var(--radius)) rotate(0deg); }
+      100% { transform: rotate(360deg) translateX(var(--radius)) rotate(-360deg); }
+    }
+
+    .nucleus {
+      width: 30px;
+      height: 30px;
+      background: currentColor;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 20px currentColor;
+      z-index: 5;
+      animation: nucleus-pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes nucleus-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+
+    .close-btn:hover {
+      opacity: 1;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 999;
+      display: none;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    .spacer {
+      grid-column: span 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="watermark">Dr. Sherry Kamal</div>
+    
+    <div class="legend">
+      <span style="color: #ffcc00;">Alkali Metals</span>
+      <span style="color: #ffff66;">Alkaline Earth Metals</span>
+      <span style="color: #ff6b9d;">Lanthanoids</span>
+      <span style="color: #b84fc9;">Actinoids</span>
+      <span style="color: #ff6666;">Transition Metals</span>
+      <span style="color: #4dd0e1;">Post-Transition Metals</span>
+      <span style="color: #26a69a;">Metalloids</span>
+      <span style="color: #66ff99;">Other Nonmetals</span>
+      <span style="color: #64b5f6;">Noble Gasses</span>
+      <span style="color: #999;">Unknown</span>
+    </div>
+
+    <div class="periodic-table" id="table"></div>
+    
+    <div class="lanthanoid-actinoid-container">
+      <div class="lanthanoid-actinoid-row">
+        <div class="lanthanoid-actinoid-spacer"></div>
+        <div>
+          <div class="lanthanoid-actinoid-label">Lanthanoids</div>
+          <div class="lanthanoid-actinoid" id="lanthanoids"></div>
+        </div>
+      </div>
+      <div class="lanthanoid-actinoid-row">
+        <div class="lanthanoid-actinoid-spacer"></div>
+        <div>
+          <div class="lanthanoid-actinoid-label">Actinoids</div>
+          <div class="lanthanoid-actinoid" id="actinoids"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popup">
+    <button class="close-btn" id="closeBtn">×</button>
+    <div class="popup-header">
+      <div class="popup-info">
+        <div id="popupNumber"></div>
+        <div id="popupMass"></div>
+        <div id="popupElectrons"></div>
+        <div id="popupCategory"></div>
+        <div id="popupGroup"></div>
+        <div id="popupPeriod"></div>
+      </div>
+      <div class="popup-symbol-name">
+        <div class="popup-symbol" id="popupSymbol"></div>
+        <div class="popup-name" id="popupName"></div>
+      </div>
+    </div>
+    <div class="shells-container" id="shellsContainer"></div>
+  </div>
+
+  <script>
+    const elements = [
+      {num: 1, symbol: "H", name: "Hydrogen", mass: "1", category: "nonmetal", shells: [1], row: 1, col: 1},
+      {num: 2, symbol: "He", name: "Helium", mass: "4", category: "noble", shells: [2], row: 1, col: 18},
+      {num: 3, symbol: "Li", name: "Lithium", mass: "7", category: "alkali", shells: [2,1], row: 2, col: 1},
+      {num: 4, symbol: "Be", name: "Beryllium", mass: "9", category: "alkaline", shells: [2,2], row: 2, col: 2},
+      {num: 5, symbol: "B", name: "Boron", mass: "11", category: "metalloid", shells: [2,3], row: 2, col: 13},
+      {num: 6, symbol: "C", name: "Carbon", mass: "12", category: "nonmetal", shells: [2,4], row: 2, col: 14},
+      {num: 7, symbol: "N", name: "Nitrogen", mass: "14", category: "nonmetal", shells: [2,5], row: 2, col: 15},
+      {num: 8, symbol: "O", name: "Oxygen", mass: "16", category: "nonmetal", shells: [2,6], row: 2, col: 16},
+      {num: 9, symbol: "F", name: "Fluorine", mass: "19", category: "nonmetal", shells: [2,7], row: 2, col: 17},
+      {num: 10, symbol: "Ne", name: "Neon", mass: "20", category: "noble", shells: [2,8], row: 2, col: 18},
+      {num: 11, symbol: "Na", name: "Sodium", mass: "23", category: "alkali", shells: [2,8,1], row: 3, col: 1},
+      {num: 12, symbol: "Mg", name: "Magnesium", mass: "24", category: "alkaline", shells: [2,8,2], row: 3, col: 2},
+      {num: 13, symbol: "Al", name: "Aluminium", mass: "27", category: "post-transition", shells: [2,8,3], row: 3, col: 13},
+      {num: 14, symbol: "Si", name: "Silicon", mass: "28", category: "metalloid", shells: [2,8,4], row: 3, col: 14},
+      {num: 15, symbol: "P", name: "Phosphorus", mass: "31", category: "nonmetal", shells: [2,8,5], row: 3, col: 15},
+      {num: 16, symbol: "S", name: "Sulfur", mass: "32", category: "nonmetal", shells: [2,8,6], row: 3, col: 16},
+      {num: 17, symbol: "Cl", name: "Chlorine", mass: "35", category: "nonmetal", shells: [2,8,7], row: 3, col: 17},
+      {num: 18, symbol: "Ar", name: "Argon", mass: "40", category: "noble", shells: [2,8,8], row: 3, col: 18},
+      {num: 19, symbol: "K", name: "Potassium", mass: "39", category: "alkali", shells: [2,8,8,1], row: 4, col: 1},
+      {num: 20, symbol: "Ca", name: "Calcium", mass: "40", category: "alkaline", shells: [2,8,8,2], row: 4, col: 2},
+      {num: 21, symbol: "Sc", name: "Scandium", mass: "45", category: "transition", shells: [2,8,9,2], row: 4, col: 3},
+      {num: 22, symbol: "Ti", name: "Titanium", mass: "48", category: "transition", shells: [2,8,10,2], row: 4, col: 4},
+      {num: 23, symbol: "V", name: "Vanadium", mass: "51", category: "transition", shells: [2,8,11,2], row: 4, col: 5},
+      {num: 24, symbol: "Cr", name: "Chromium", mass: "52", category: "transition", shells: [2,8,13,1], row: 4, col: 6},
+      {num: 25, symbol: "Mn", name: "Manganese", mass: "55", category: "transition", shells: [2,8,13,2], row: 4, col: 7},
+      {num: 26, symbol: "Fe", name: "Iron", mass: "56", category: "transition", shells: [2,8,14,2], row: 4, col: 8},
+      {num: 27, symbol: "Co", name: "Cobalt", mass: "59", category: "transition", shells: [2,8,15,2], row: 4, col: 9},
+      {num: 28, symbol: "Ni", name: "Nickel", mass: "59", category: "transition", shells: [2,8,16,2], row: 4, col: 10},
+      {num: 29, symbol: "Cu", name: "Copper", mass: "64", category: "transition", shells: [2,8,18,1], row: 4, col: 11},
+      {num: 30, symbol: "Zn", name: "Zinc", mass: "65", category: "transition", shells: [2,8,18,2], row: 4, col: 12},
+      {num: 31, symbol: "Ga", name: "Gallium", mass: "70", category: "post-transition", shells: [2,8,18,3], row: 4, col: 13},
+      {num: 32, symbol: "Ge", name: "Germanium", mass: "73", category: "metalloid", shells: [2,8,18,4], row: 4, col: 14},
+      {num: 33, symbol: "As", name: "Arsenic", mass: "75", category: "metalloid", shells: [2,8,18,5], row: 4, col: 15},
+      {num: 34, symbol: "Se", name: "Selenium", mass: "79", category: "nonmetal", shells: [2,8,18,6], row: 4, col: 16},
+      {num: 35, symbol: "Br", name: "Bromine", mass: "80", category: "nonmetal", shells: [2,8,18,7], row: 4, col: 17},
+      {num: 36, symbol: "Kr", name: "Krypton", mass: "84", category: "noble", shells: [2,8,18,8], row: 4, col: 18},
+      {num: 37, symbol: "Rb", name: "Rubidium", mass: "85", category: "alkali", shells: [2,8,18,8,1], row: 5, col: 1},
+      {num: 38, symbol: "Sr", name: "Strontium", mass: "88", category: "alkaline", shells: [2,8,18,8,2], row: 5, col: 2},
+      {num: 39, symbol: "Y", name: "Yttrium", mass: "89", category: "transition", shells: [2,8,18,9,2], row: 5, col: 3},
+      {num: 40, symbol: "Zr", name: "Zirconium", mass: "91", category: "transition", shells: [2,8,18,10,2], row: 5, col: 4},
+      {num: 41, symbol: "Nb", name: "Niobium", mass: "93", category: "transition", shells: [2,8,18,12,1], row: 5, col: 5},
+      {num: 42, symbol: "Mo", name: "Molybdenum", mass: "96", category: "transition", shells: [2,8,18,13,1], row: 5, col: 6},
+      {num: 43, symbol: "Tc", name: "Technetium", mass: "98", category: "transition", shells: [2,8,18,13,2], row: 5, col: 7},
+      {num: 44, symbol: "Ru", name: "Ruthenium", mass: "101", category: "transition", shells: [2,8,18,15,1], row: 5, col: 8},
+      {num: 45, symbol: "Rh", name: "Rhodium", mass: "103", category: "transition", shells: [2,8,18,16,1], row: 5, col: 9},
+      {num: 46, symbol: "Pd", name: "Palladium", mass: "106", category: "transition", shells: [2,8,18,18], row: 5, col: 10},
+      {num: 47, symbol: "Ag", name: "Silver", mass: "108", category: "transition", shells: [2,8,18,18,1], row: 5, col: 11},
+      {num: 48, symbol: "Cd", name: "Cadmium", mass: "112", category: "transition", shells: [2,8,18,18,2], row: 5, col: 12},
+      {num: 49, symbol: "In", name: "Indium", mass: "115", category: "post-transition", shells: [2,8,18,18,3], row: 5, col: 13},
+      {num: 50, symbol: "Sn", name: "Tin", mass: "119", category: "post-transition", shells: [2,8,18,18,4], row: 5, col: 14},
+      {num: 51, symbol: "Sb", name: "Antimony", mass: "122", category: "metalloid", shells: [2,8,18,18,5], row: 5, col: 15},
+      {num: 52, symbol: "Te", name: "Tellurium", mass: "128", category: "metalloid", shells: [2,8,18,18,6], row: 5, col: 16},
+      {num: 53, symbol: "I", name: "Iodine", mass: "127", category: "nonmetal", shells: [2,8,18,18,7], row: 5, col: 17},
+      {num: 54, symbol: "Xe", name: "Xenon", mass: "131", category: "noble", shells: [2,8,18,18,8], row: 5, col: 18},
+      {num: 55, symbol: "Cs", name: "Caesium", mass: "133", category: "alkali", shells: [2,8,18,18,8,1], row: 6, col: 1},
+      {num: 56, symbol: "Ba", name: "Barium", mass: "137", category: "alkaline", shells: [2,8,18,18,8,2], row: 6, col: 2},
+      {num: 57, symbol: "La", name: "Lanthanum", mass: "139", category: "lanthanoid", shells: [2,8,18,18,9,2], row: 6, col: 3},
+      {num: 72, symbol: "Hf", name: "Hafnium", mass: "178", category: "transition", shells: [2,8,18,32,10,2], row: 6, col: 4},
+      {num: 73, symbol: "Ta", name: "Tantalum", mass: "181", category: "transition", shells: [2,8,18,32,11,2], row: 6, col: 5},
+      {num: 74, symbol: "W", name: "Tungsten", mass: "184", category: "transition", shells: [2,8,18,32,12,2], row: 6, col: 6},
+      {num: 75, symbol: "Re", name: "Rhenium", mass: "186", category: "transition", shells: [2,8,18,32,13,2], row: 6, col: 7},
+      {num: 76, symbol: "Os", name: "Osmium", mass: "190", category: "transition", shells: [2,8,18,32,14,2], row: 6, col: 8},
+      {num: 77, symbol: "Ir", name: "Iridium", mass: "192", category: "transition", shells: [2,8,18,32,15,2], row: 6, col: 9},
+      {num: 78, symbol: "Pt", name: "Platinum", mass: "195", category: "transition", shells: [2,8,18,32,17,1], row: 6, col: 10},
+      {num: 79, symbol: "Au", name: "Gold", mass: "197", category: "transition", shells: [2,8,18,32,18,1], row: 6, col: 11},
+      {num: 80, symbol: "Hg", name: "Mercury", mass: "201", category: "transition", shells: [2,8,18,32,18,2], row: 6, col: 12},
+      {num: 81, symbol: "Tl", name: "Thallium", mass: "204", category: "post-transition", shells: [2,8,18,32,18,3], row: 6, col: 13},
+      {num: 82, symbol: "Pb", name: "Lead", mass: "207", category: "post-transition", shells: [2,8,18,32,18,4], row: 6, col: 14},
+      {num: 83, symbol: "Bi", name: "Bismuth", mass: "209", category: "post-transition", shells: [2,8,18,32,18,5], row: 6, col: 15},
+      {num: 84, symbol: "Po", name: "Polonium", mass: "209", category: "post-transition", shells: [2,8,18,32,18,6], row: 6, col: 16},
+      {num: 85, symbol: "At", name: "Astatine", mass: "210", category: "metalloid", shells: [2,8,18,32,18,7], row: 6, col: 17},
+      {num: 86, symbol: "Rn", name: "Radon", mass: "222", category: "noble", shells: [2,8,18,32,18,8], row: 6, col: 18},
+      {num: 87, symbol: "Fr", name: "Francium", mass: "223", category: "alkali", shells: [2,8,18,32,18,8,1], row: 7, col: 1},
+      {num: 88, symbol: "Ra", name: "Radium", mass: "226", category: "alkaline", shells: [2,8,18,32,18,8,2], row: 7, col: 2},
+      {num: 89, symbol: "Ac", name: "Actinium", mass: "227", category: "actinoid", shells: [2,8,18,32,18,9,2], row: 7, col: 3},
+      {num: 104, symbol: "Rf", name: "Rutherfordium", mass: "267", category: "transition", shells: [2,8,18,32,32,10,2], row: 7, col: 4},
+      {num: 105, symbol: "Db", name: "Dubnium", mass: "268", category: "transition", shells: [2,8,18,32,32,11,2], row: 7, col: 5},
+      {num: 106, symbol: "Sg", name: "Seaborgium", mass: "269", category: "transition", shells: [2,8,18,32,32,12,2], row: 7, col: 6},
+      {num: 107, symbol: "Bh", name: "Bohrium", mass: "270", category: "transition", shells: [2,8,18,32,32,13,2], row: 7, col: 7},
+      {num: 108, symbol: "Hs", name: "Hassium", mass: "277", category: "transition", shells: [2,8,18,32,32,14,2], row: 7, col: 8},
+      {num: 109, symbol: "Mt", name: "Meitnerium", mass: "278", category: "unknown", shells: [2,8,18,32,32,15,2], row: 7, col: 9},
+      {num: 110, symbol: "Ds", name: "Darmstadtium", mass: "281", category: "unknown", shells: [2,8,18,32,32,16,2], row: 7, col: 10},
+      {num: 111, symbol: "Rg", name: "Roentgenium", mass: "282", category: "unknown", shells: [2,8,18,32,32,17,2], row: 7, col: 11},
+      {num: 112, symbol: "Cn", name: "Copernicium", mass: "285", category: "transition", shells: [2,8,18,32,32,18,2], row: 7, col: 12},
+      {num: 113, symbol: "Nh", name: "Nihonium", mass: "286", category: "post-transition", shells: [2,8,18,32,32,18,3], row: 7, col: 13},
+      {num: 114, symbol: "Fl", name: "Flerovium", mass: "289", category: "post-transition", shells: [2,8,18,32,32,18,4], row: 7, col: 14},
+      {num: 115, symbol: "Mc", name: "Moscovium", mass: "290", category: "post-transition", shells: [2,8,18,32,32,18,5], row: 7, col: 15},
+      {num: 116, symbol: "Lv", name: "Livermorium", mass: "293", category: "post-transition", shells: [2,8,18,32,32,18,6], row: 7, col: 16},
+      {num: 117, symbol: "Ts", name: "Tennessine", mass: "294", category: "unknown", shells: [2,8,18,32,32,18,7], row: 7, col: 17},
+      {num: 118, symbol: "Og", name: "Oganesson", mass: "294", category: "unknown", shells: [2,8,18,32,32,18,8], row: 7, col: 18},
+      // Lanthanoids
+      {num: 58, symbol: "Ce", name: "Cerium", mass: "140", category: "lanthanoid", shells: [2,8,18,19,9,2], row: 8, col: 1},
+      {num: 59, symbol: "Pr", name: "Praseodymium", mass: "141", category: "lanthanoid", shells: [2,8,18,21,8,2], row: 8, col: 2},
+      {num: 60, symbol: "Nd", name: "Neodymium", mass: "144", category: "lanthanoid", shells: [2,8,18,22,8,2], row: 8, col: 3},
+      {num: 61, symbol: "Pm", name: "Promethium", mass: "145", category: "lanthanoid", shells: [2,8,18,23,8,2], row: 8, col: 4},
+      {num: 62, symbol: "Sm", name: "Samarium", mass: "150", category: "lanthanoid", shells: [2,8,18,24,8,2], row: 8, col: 5},
+      {num: 63, symbol: "Eu", name: "Europium", mass: "152", category: "lanthanoid", shells: [2,8,18,25,8,2], row: 8, col: 6},
+      {num: 64, symbol: "Gd", name: "Gadolinium", mass: "157", category: "lanthanoid", shells: [2,8,18,25,9,2], row: 8, col: 7},
+      {num: 65, symbol: "Tb", name: "Terbium", mass: "159", category: "lanthanoid", shells: [2,8,18,27,8,2], row: 8, col: 8},
+      {num: 66, symbol: "Dy", name: "Dysprosium", mass: "163", category: "lanthanoid", shells: [2,8,18,28,8,2], row: 8, col: 9},
+      {num: 67, symbol: "Ho", name: "Holmium", mass: "165", category: "lanthanoid", shells: [2,8,18,29,8,2], row: 8, col: 10},
+      {num: 68, symbol: "Er", name: "Erbium", mass: "167", category: "lanthanoid", shells: [2,8,18,30,8,2], row: 8, col: 11},
+      {num: 69, symbol: "Tm", name: "Thulium", mass: "169", category: "lanthanoid", shells: [2,8,18,31,8,2], row: 8, col: 12},
+      {num: 70, symbol: "Yb", name: "Ytterbium", mass: "173", category: "lanthanoid", shells: [2,8,18,32,8,2], row: 8, col: 13},
+      {num: 71, symbol: "Lu", name: "Lutetium", mass: "175", category: "lanthanoid", shells: [2,8,18,32,9,2], row: 8, col: 14},
+      // Actinoids
+      {num: 90, symbol: "Th", name: "Thorium", mass: "232", category: "actinoid", shells: [2,8,18,32,18,10,2], row: 9, col: 1},
+      {num: 91, symbol: "Pa", name: "Protactinium", mass: "231", category: "actinoid", shells: [2,8,18,32,20,9,2], row: 9, col: 2},
+      {num: 92, symbol: "U", name: "Uranium", mass: "238", category: "actinoid", shells: [2,8,18,32,21,9,2], row: 9, col: 3},
+      {num: 93, symbol: "Np", name: "Neptunium", mass: "237", category: "actinoid", shells: [2,8,18,32,22,9,2], row: 9, col: 4},
+      {num: 94, symbol: "Pu", name: "Plutonium", mass: "244", category: "actinoid", shells: [2,8,18,32,24,8,2], row: 9, col: 5},
+      {num: 95, symbol: "Am", name: "Americium", mass: "243", category: "actinoid", shells: [2,8,18,32,25,8,2], row: 9, col: 6},
+      {num: 96, symbol: "Cm", name: "Curium", mass: "247", category: "actinoid", shells: [2,8,18,32,25,9,2], row: 9, col: 7},
+      {num: 97, symbol: "Bk", name: "Berkelium", mass: "247", category: "actinoid", shells: [2,8,18,32,27,8,2], row: 9, col: 8},
+      {num: 98, symbol: "Cf", name: "Californium", mass: "251", category: "actinoid", shells: [2,8,18,32,28,8,2], row: 9, col: 9},
+      {num: 99, symbol: "Es", name: "Einsteinium", mass: "252", category: "actinoid", shells: [2,8,18,32,29,8,2], row: 9, col: 10},
+      {num: 100, symbol: "Fm", name: "Fermium", mass: "257", category: "actinoid", shells: [2,8,18,32,30,8,2], row: 9, col: 11},
+      {num: 101, symbol: "Md", name: "Mendelevium", mass: "258", category: "actinoid", shells: [2,8,18,32,31,8,2], row: 9, col: 12},
+      {num: 102, symbol: "No", name: "Nobelium", mass: "259", category: "actinoid", shells: [2,8,18,32,32,8,2], row: 9, col: 13},
+      {num: 103, symbol: "Lr", name: "Lawrencium", mass: "262", category: "actinoid", shells: [2,8,18,32,32,8,3], row: 9, col: 14}
+    ];
+
+    const categoryColors = {
+      "alkali": "#ffcc00",
+      "alkaline": "#ffff66",
+      "lanthanoid": "#ff6b9d",
+      "actinoid": "#b84fc9",
+      "transition": "#ff6666",
+      "post-transition": "#4dd0e1",
+      "metalloid": "#26a69a",
+      "nonmetal": "#66ff99",
+      "noble": "#64b5f6",
+      "unknown": "#999"
+    };
+
+    const categoryNames = {
+      "alkali": "Alkali Metal",
+      "alkaline": "Alkaline Earth Metal",
+      "lanthanoid": "Lanthanoid",
+      "actinoid": "Actinoid",
+      "transition": "Transition Metal",
+      "post-transition": "Post-Transition Metal",
+      "metalloid": "Metalloid",
+      "nonmetal": "Nonmetal",
+      "noble": "Noble Gas",
+      "unknown": "Unknown Properties"
+    };
+
+    const table = document.getElementById("table");
+    const lanthanoidsContainer = document.getElementById("lanthanoids");
+    const actinoidsContainer = document.getElementById("actinoids");
+    const popup = document.getElementById("popup");
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+
+    // Create main periodic table
+    elements.forEach(element => {
+      if (element.row <= 7) {
+        const el = document.createElement("div");
+        el.className = "element";
+        el.style.gridRow = element.row;
+        el.style.gridColumn = element.col;
+        el.style.borderColor = categoryColors[element.category];
+        el.style.color = categoryColors[element.category];
+        
+        el.innerHTML = `
+          <div class="element-number">${element.num}</div>
+          <div class="element-mass">${element.mass}</div>
+          <div class="element-symbol">${element.symbol}</div>
+          <div class="element-name">${element.name}</div>
+        `;
+        
+        el.addEventListener("click", () => showElementInfo(element));
+        table.appendChild(el);
+      }
+    });
+
+    // Create lanthanoids
+    const lanthanoids = elements.filter(el => el.row === 8);
+    lanthanoids.forEach(element => {
+      const el = document.createElement("div");
+      el.className = "element";
+      el.style.borderColor = categoryColors[element.category];
+      el.style.color = categoryColors[element.category];
+      
+      el.innerHTML = `
+        <div class="element-number">${element.num}</div>
+        <div class="element-mass">${element.mass}</div>
+        <div class="element-symbol">${element.symbol}</div>
+        <div class="element-name">${element.name}</div>
+      `;
+      
+      el.addEventListener("click", () => showElementInfo(element));
+      lanthanoidsContainer.appendChild(el);
+    });
+
+    // Create actinoids
+    const actinoids = elements.filter(el => el.row === 9);
+    actinoids.forEach(element => {
+      const el = document.createElement("div");
+      el.className = "element";
+      el.style.borderColor = categoryColors[element.category];
+      el.style.color = categoryColors[element.category];
+      
+      el.innerHTML = `
+        <div class="element-number">${element.num}</div>
+        <div class="element-mass">${element.mass}</div>
+        <div class="element-symbol">${element.symbol}</div>
+        <div class="element-name">${element.name}</div>
+      `;
+      
+      el.addEventListener("click", () => showElementInfo(element));
+      actinoidsContainer.appendChild(el);
+    });
+
+    // Add empty cells for proper spacing in main table
+    for (let i = 1; i <= 7; i++) {
+      for (let j = 1; j <= 18; j++) {
+        const cell = document.createElement("div");
+        cell.className = "spacer";
+        cell.style.gridRow = i;
+        cell.style.gridColumn = j;
+        table.appendChild(cell);
+      }
+    }
+
+    function showElementInfo(element) {
+      document.getElementById("popupSymbol").textContent = element.symbol;
+      document.getElementById("popupName").textContent = element.name;
+      document.getElementById("popupNumber").textContent = `Atomic Number: ${element.num}`;
+      document.getElementById("popupMass").textContent = `Atomic Mass: ${element.mass}`;
+      document.getElementById("popupElectrons").textContent = `Electron Configuration: ${element.shells.join("-")}`;
+      document.getElementById("popupCategory").textContent = `Category: ${categoryNames[element.category]}`;
+      document.getElementById("popupGroup").textContent = `Group: ${element.col}`;
+      document.getElementById("popupPeriod").textContent = `Period: ${element.row}`;
+      
+      popup.style.borderColor = categoryColors[element.category];
+      popup.style.color = categoryColors[element.category];
+      
+      createElectronShells(element);
+      
+      popup.classList.add("active");
+      overlay.classList.add("active");
+    }
+
+    function createElectronShells(element) {
+      const shellsContainer = document.getElementById("shellsContainer");
+      shellsContainer.innerHTML = '';
+      
+      const nucleus = document.createElement("div");
+      nucleus.className = "nucleus";
+      shellsContainer.appendChild(nucleus);
+      
+      const shells = element.shells;
+      const maxElectrons = Math.max(...shells);
+      
+      shells.forEach((electrons, index) => {
+        const shell = document.createElement("div");
+        shell.className = "shell";
+        const radius = 30 + index * 25;
+        shell.style.width = `${radius * 2}px`;
+        shell.style.height = `${radius * 2}px`;
+        
+        // Create electrons for this shell
+        for (let i = 0; i < electrons; i++) {
+          const electron = document.createElement("div");
+          electron.className = "electron";
+          electron.style.setProperty("--radius", `${radius}px`);
+          electron.style.animationDelay = `${i * (4 / electrons)}s`;
+          shell.appendChild(electron);
+        }
+        
+        shellsContainer.appendChild(shell);
+      });
+    }
+
+    closeBtn.addEventListener("click", () => {
+      popup.classList.remove("active");
+      overlay.classList.remove("active");
+    });
+
+    overlay.addEventListener("click", () => {
+      popup.classList.remove("active");
+      overlay.classList.remove("active");
+    });
+  </script>
+</body>
+</html>
